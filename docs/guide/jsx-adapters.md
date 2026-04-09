@@ -2,6 +2,32 @@
 
 By default, `handle.mount()` accepts strings and `HTMLElement` instances. To mount JSX or VDOM nodes from a framework (React, Preact, Solid…), provide a `renderFn` adapter.
 
+::: tip Vite plugin required
+`renderFn` handles runtime mounting only. To use JSX syntax in actor code, the framework's Vite plugin must also be registered so `.tsx` files are transformed at build time.
+
+Add it via the `vite` field in `gwen.config.ts`:
+
+```ts
+// gwen.config.ts
+import { defineConfig } from '@gwenjs/app'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  modules: [
+    ['@gwenjs/renderer-html', {
+      layers: { hud: { order: 100 } },
+      renderFn: reactAdapter,
+    }],
+  ],
+  vite: {
+    plugins: [react()],
+  },
+})
+```
+
+Available plugins: `@vitejs/plugin-react`, `@preact/preset-vite`, `vite-plugin-solid`, etc.
+:::
+
 ## What is FrameworkRenderFn
 
 ```ts
