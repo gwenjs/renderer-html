@@ -4,3 +4,5 @@ dist/
 .DS_Store
 docs/superpowers/
 docs/.vitepress/cache/
+
+.idea
