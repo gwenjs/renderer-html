@@ -14,49 +14,51 @@ import {
   UnknownLayerError,
   type LayerDef,
   type HTMLHandle,
-} from '@gwenjs/renderer-core'
-import { HTMLLayer } from './html-layer.js'
-import { HTMLHandleImpl, type FrameworkRenderFn } from './html-handle.js'
+} from "@gwenjs/renderer-core";
+import { HTMLLayer } from "./html-layer.js";
+import { HTMLHandleImpl, type FrameworkRenderFn } from "./html-handle.js";
 
 export interface HTMLRendererOptions {
   /** Named layers this renderer manages. At least one required. */
-  layers: Record<string, LayerDef>
+  layers: Record<string, LayerDef>;
   /**
    * Optional framework render function (e.g. a React adapter).
    * When provided, unknown-type content passed to handle.mount() is rendered via this function.
    */
-  renderFn?: FrameworkRenderFn
+  renderFn?: FrameworkRenderFn;
 }
 
 export const HTMLRenderer = defineRendererService<
   HTMLRendererOptions,
   { allocateHandle(layerName: string, slotKey: string): HTMLHandle }
 >((opts) => {
-  const htmlLayers = new Map<string, HTMLLayer>()
+  const htmlLayers = new Map<string, HTMLLayer>();
   for (const [name, def] of Object.entries(opts.layers)) {
-    htmlLayers.set(name, new HTMLLayer(name, def))
+    htmlLayers.set(name, new HTMLLayer(name, def));
   }
 
   return {
-    name: 'renderer:html',
+    name: "renderer:html",
     layers: opts.layers,
     createElement: (layerName) => htmlLayers.get(layerName)!.element,
     mount: () => {},
-    unmount: () => { for (const layer of htmlLayers.values()) layer.element.remove() },
+    unmount: () => {
+      for (const layer of htmlLayers.values()) layer.element.remove();
+    },
     resize: () => {},
     flush: ({ reportFrameTime, reportLayer }) => {
       for (const [name, layer] of htmlLayers.entries())
-        reportLayer(name, { domNodes: layer.activeCount })
-      reportFrameTime(0)
+        reportLayer(name, { domNodes: layer.activeCount });
+      reportFrameTime(0);
     },
     extension: {
       allocateHandle(layerName: string, slotKey: string): HTMLHandle {
-        const layer = htmlLayers.get(layerName)
-        if (!layer) throw new UnknownLayerError(layerName, 'renderer:html')
-        return new HTMLHandleImpl(layer, slotKey, opts.renderFn)
+        const layer = htmlLayers.get(layerName);
+        if (!layer) throw new UnknownLayerError(layerName, "renderer:html");
+        return new HTMLHandleImpl(layer, slotKey, opts.renderFn);
       },
     },
-  }
-})
+  };
+});
 
-export type HTMLRendererService = ReturnType<typeof HTMLRenderer>
+export type HTMLRendererService = ReturnType<typeof HTMLRenderer>;

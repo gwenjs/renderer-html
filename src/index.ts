@@ -8,22 +8,22 @@
  */
 
 // Composable
-export { useHTML } from './composables/use-html.js'
+export { useHTML } from "./composables/use-html.js";
 
 // Service factory + types
-export { HTMLRenderer } from './html-renderer-service.js'
-export type { HTMLRendererOptions, HTMLRendererService } from './html-renderer-service.js'
+export { HTMLRenderer } from "./html-renderer-service.js";
+export type { HTMLRendererOptions, HTMLRendererService } from "./html-renderer-service.js";
 
 // Plugin
-export { HTMLRendererPlugin } from './html-plugin.js'
-export type { HTMLRendererPluginOptions } from './html-plugin.js'
+export { HTMLRendererPlugin } from "./html-plugin.js";
+export type { HTMLRendererPluginOptions } from "./html-plugin.js";
 
 // Handle internals (for framework adapters)
-export type { FrameworkRenderFn } from './html-handle.js'
+export type { FrameworkRenderFn } from "./html-handle.js";
 
 // GwenProvides augmentation — typed useService('renderer:html')
-declare module '@gwenjs/core' {
+declare module "@gwenjs/core" {
   interface GwenProvides {
-    'renderer:html': import('./html-renderer-service.js').HTMLRendererService
+    "renderer:html": import("./html-renderer-service.js").HTMLRendererService;
   }
 }

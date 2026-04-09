@@ -6,7 +6,7 @@
  * game root container.
  */
 
-import type { LayerDef } from '@gwenjs/renderer-core'
+import type { LayerDef } from "@gwenjs/renderer-core";
 
 /**
  * A single named HTML rendering layer — one <div> at a specific z-index.
@@ -14,17 +14,17 @@ import type { LayerDef } from '@gwenjs/renderer-core'
  */
 export class HTMLLayer {
   /** The root <div> element for this layer. Mounted by LayerManager. */
-  readonly element: HTMLDivElement
-  private readonly _slots = new Map<string, HTMLDivElement>()
-  readonly layerName: string
-  readonly def: LayerDef
+  readonly element: HTMLDivElement;
+  private readonly _slots = new Map<string, HTMLDivElement>();
+  readonly layerName: string;
+  readonly def: LayerDef;
 
   constructor(layerName: string, def: LayerDef) {
-    this.layerName = layerName
-    this.def = def
+    this.layerName = layerName;
+    this.def = def;
 
-    this.element = document.createElement('div')
-    this.element.setAttribute('data-gwen-layer', `renderer:html:${layerName}`)
+    this.element = document.createElement("div");
+    this.element.setAttribute("data-gwen-layer", `renderer:html:${layerName}`);
   }
 
   /**
@@ -32,14 +32,14 @@ export class HTMLLayer {
    * Returns the existing container if already allocated.
    */
   allocate(key: string): HTMLDivElement {
-    if (this._slots.has(key)) return this._slots.get(key)!
+    if (this._slots.has(key)) return this._slots.get(key)!;
 
-    const container = document.createElement('div')
-    container.setAttribute('data-gwen-slot', key)
-    container.style.position = 'absolute'
-    this.element.appendChild(container)
-    this._slots.set(key, container)
-    return container
+    const container = document.createElement("div");
+    container.setAttribute("data-gwen-slot", key);
+    container.style.position = "absolute";
+    this.element.appendChild(container);
+    this._slots.set(key, container);
+    return container;
   }
 
   /**
@@ -47,23 +47,23 @@ export class HTMLLayer {
    * Safe to call with an unknown key.
    */
   release(key: string): void {
-    const container = this._slots.get(key)
-    if (!container) return
-    container.remove()
-    this._slots.delete(key)
+    const container = this._slots.get(key);
+    if (!container) return;
+    container.remove();
+    this._slots.delete(key);
   }
 
   /**
    * Show or hide a slot's container.
    */
   setVisible(key: string, visible: boolean): void {
-    const container = this._slots.get(key)
-    if (!container) return
-    container.style.display = visible ? '' : 'none'
+    const container = this._slots.get(key);
+    if (!container) return;
+    container.style.display = visible ? "" : "none";
   }
 
   /** Number of currently allocated slots. */
   get activeCount(): number {
-    return this._slots.size
+    return this._slots.size;
   }
 }

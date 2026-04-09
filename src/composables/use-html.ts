@@ -15,10 +15,9 @@
  * ```
  */
 
-import { onCleanup } from '@gwenjs/core'
-import { useService } from '@gwenjs/core/system'
-import type { HTMLHandle } from '@gwenjs/renderer-core'
-import type { HTMLRendererService } from '../html-renderer-service.js'
+import { onCleanup } from "@gwenjs/core";
+import { useService } from "@gwenjs/core/system";
+import type { HTMLHandle } from "@gwenjs/renderer-core";
 
 /**
  * Returns an HTMLHandle backed by the named layer in the HTML renderer.
@@ -32,9 +31,9 @@ import type { HTMLRendererService } from '../html-renderer-service.js'
  * @throws {UnknownLayerError}       If `layerName` was not declared in the renderer config.
  */
 export function useHTML(layerName?: string, slotKey?: string): HTMLHandle {
-  const service = useService('renderer:html')
-  const resolvedLayer = layerName ?? Object.keys(service.layers)[0]
-  const handle = service.allocateHandle(resolvedLayer, slotKey ?? '')
-  onCleanup(() => handle.unmount())
-  return handle
+  const service = useService("renderer:html");
+  const resolvedLayer = layerName ?? Object.keys(service.layers)[0];
+  const handle = service.allocateHandle(resolvedLayer, slotKey ?? "");
+  onCleanup(() => handle.unmount());
+  return handle;
 }
