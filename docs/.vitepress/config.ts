@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: '@gwenjs/renderer-html',
   description: 'HTML/CSS renderer plugin for the Gwen game engine.',
+  base: '/renderer-html/',
 
   locales: {
     root: {
