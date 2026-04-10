@@ -284,14 +284,14 @@ describe('HTMLRenderer — instantiateTemplates + destroyTemplateLayers', () => 
     })
     service.mount(container)
     service.instantiateTemplates('p1', { x: 0, y: 0, width: 1, height: 1 })
-    const elFirst = service.getLayerElement('hud_p1')
+    const elFirst = container.querySelector('[data-gwen-layer="renderer:html:hud_p1"]') as HTMLElement
     service.allocateHandle('hud_p1', 'slot-a').mount('<div>old</div>')
 
     service.destroyTemplateLayers('p1')
     service.instantiateTemplates('p1', { x: 0, y: 0, width: 1, height: 1 })
 
     // The layer is re-registered and accessible
-    const elSecond = service.getLayerElement('hud_p1')
+    const elSecond = container.querySelector('[data-gwen-layer="renderer:html:hud_p1"]') as HTMLElement
     // Re-instantiated layer must be a new element, not the same reference
     expect(elSecond).not.toBe(elFirst)
     // Re-instantiated layer has no stale slots from the previous lifecycle

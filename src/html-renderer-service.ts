@@ -160,13 +160,9 @@ export const HTMLRenderer = defineRendererService<
     return layer.def.viewportId ?? opts.viewportId ?? _firstViewportId;
   }
 
-  // Declared so defineRendererService detects it and replaces it with a real
-  // cache-eviction function. destroyTemplateLayers calls it to ensure that
-  // re-instantiation always produces a fresh element from getLayerElement().
-  const serviceDef = {
+  return {
     name: "renderer:html",
     layers: layerRegistry,
-    invalidateLayerCache: undefined as ((name: string) => void) | undefined,
     createElement: (layerName: string) => htmlLayers.get(layerName)!.element,
     mount: (ctx: RendererMountContext) => {
       _container = ctx.container;
@@ -258,10 +254,6 @@ export const HTMLRenderer = defineRendererService<
             htmlLayers.delete(name);
             delete layerRegistry[name];
             _templateLayers.delete(name);
-            // Evict the stale element from defineRendererService's cache so that
-            // a subsequent instantiateTemplates + getLayerElement call returns
-            // the new element rather than the old one.
-            serviceDef.invalidateLayerCache?.(name);
             opts.log?.debug("template layer destroyed", { name, viewportId });
           }
         }
@@ -269,7 +261,6 @@ export const HTMLRenderer = defineRendererService<
       },
     },
   };
-  return serviceDef;
 });
 
 export type HTMLRendererService = ReturnType<typeof HTMLRenderer>;

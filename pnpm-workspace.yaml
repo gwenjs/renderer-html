@@ -1,2 +1,0 @@
-patchedDependencies:
-  '@gwenjs/renderer-core@0.2.0': patches/@gwenjs__renderer-core@0.2.0.patch
