@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { HTMLLayer } from '../src/html-layer.js'
+import type { HTMLLayerDef } from '../src/html-layer.js'
 import type { ViewportRegion } from '../src/camera-types.js'
 
 describe('HTMLLayer', () => {
@@ -118,5 +119,74 @@ describe('HTMLLayer — world coordinate', () => {
     const screenLayer = new HTMLLayer('hud', { order: 100 })
     screenLayer.applyTransform(100, 50, 1, 800, 600, { x: 0, y: 0, width: 1, height: 1 } as ViewportRegion)
     expect(screenLayer.element.style.transform).toBe('')
+  })
+})
+
+describe('HTMLLayer — clearSlots', () => {
+  it('releases all active slots and removes them from the DOM', () => {
+    const layer = new HTMLLayer('game', { order: 10, coordinate: 'world' })
+    layer.allocate('a')
+    layer.allocate('b')
+    layer.clearSlots()
+    expect(layer.activeCount).toBe(0)
+    expect(layer.element.querySelectorAll('[data-gwen-slot]').length).toBe(0)
+  })
+
+  it('is a no-op when there are no slots', () => {
+    const layer = new HTMLLayer('hud', { order: 100 })
+    expect(() => layer.clearSlots()).not.toThrow()
+  })
+})
+
+describe('HTMLLayer — setLayerVisible', () => {
+  it('hides the layer element', () => {
+    const layer = new HTMLLayer('hud', { order: 100 })
+    layer.setLayerVisible(false)
+    expect(layer.element.style.display).toBe('none')
+  })
+
+  it('shows the layer element after hiding it', () => {
+    const layer = new HTMLLayer('hud', { order: 100 })
+    layer.setLayerVisible(false)
+    layer.setLayerVisible(true)
+    expect(layer.element.style.display).toBe('')
+  })
+})
+
+describe('HTMLLayerDef — type compatibility', () => {
+  it('accepts a plain LayerDef without viewportId (backward-compatible)', () => {
+    const def: HTMLLayerDef = { order: 10 }
+    expect(() => new HTMLLayer('test', def)).not.toThrow()
+  })
+
+  it('accepts a def with viewportId', () => {
+    const def: HTMLLayerDef = { order: 10, viewportId: 'p1' }
+    expect(() => new HTMLLayer('test', def)).not.toThrow()
+  })
+})
+
+describe('HTMLLayer — screen layer with viewportId', () => {
+  it('clips the layer to the viewport region', () => {
+    const layer = new HTMLLayer('hud_p1', { order: 100, viewportId: 'p1' })
+    layer.applyTransform(0, 0, 1, 800, 600, { x: 0, y: 0, width: 0.5, height: 1 } as ViewportRegion)
+    expect(layer.element.style.position).toBe('absolute')
+    expect(layer.element.style.overflow).toBe('hidden')
+    expect(layer.element.style.left).toBe('0px')
+    expect(layer.element.style.top).toBe('0px')
+    expect(layer.element.style.width).toBe('400px')
+    expect(layer.element.style.height).toBe('600px')
+  })
+
+  it('does NOT apply a camera transform to the element', () => {
+    const layer = new HTMLLayer('hud_p1', { order: 100, viewportId: 'p1' })
+    layer.applyTransform(100, 50, 2, 800, 600, { x: 0, y: 0, width: 0.5, height: 1 } as ViewportRegion)
+    expect(layer.element.style.transform).toBe('')
+  })
+
+  it('screen layer without viewportId is fully untouched by applyTransform', () => {
+    const layer = new HTMLLayer('overlay', { order: 200 })
+    layer.applyTransform(100, 50, 1, 800, 600, { x: 0, y: 0, width: 1, height: 1 } as ViewportRegion)
+    expect(layer.element.style.position).toBe('')
+    expect(layer.element.style.left).toBe('')
   })
 })
