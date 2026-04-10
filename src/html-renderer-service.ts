@@ -81,7 +81,7 @@ export const HTMLRenderer = defineRendererService<
      * Viewport resolution per layer (decreasing priority):
      * 1. `layer.def.viewportId` — explicit binding
      * 2. `opts.viewportId`      — plugin-level fallback
-     * 3. First viewport ever seen by this method — global fallback
+     * 3. First viewport ID seen by any service method — global fallback
      *
      * @param viewportId - ID of the viewport being rendered.
      * @param camX       - Camera world X (viewport centre).
@@ -140,7 +140,7 @@ export const HTMLRenderer = defineRendererService<
   let containerW = 0;
   let containerH = 0;
   let _container: HTMLElement | undefined;
-  /** First viewport ID ever seen by applyViewportTransforms — used as global fallback. */
+  /** First viewport ID seen by any service method — used as global fallback for layers with no explicit binding. */
   let _firstViewportId: string | undefined;
   /** Layers created from templates, keyed by layer name. */
   const _templateLayers = new Map<string, HTMLLayer>();
@@ -164,6 +164,10 @@ export const HTMLRenderer = defineRendererService<
     },
     unmount: () => {
       for (const layer of htmlLayers.values()) layer.element.remove();
+      htmlLayers.clear();
+      _templateLayers.clear();
+      _templateLayersByViewport.clear();
+      _container = undefined;
     },
     resize: (w, h) => {
       containerW = w;
@@ -217,6 +221,7 @@ export const HTMLRenderer = defineRendererService<
 
       instantiateTemplates(viewportId: string, region: ViewportRegion): void {
         if (!opts.layerTemplates) return;
+        if (_templateLayersByViewport.has(viewportId)) return; // already instantiated for this viewport
         const names: string[] = [];
         for (const [pattern, def] of Object.entries(opts.layerTemplates)) {
           const name = pattern.replace("{id}", viewportId);
@@ -227,6 +232,8 @@ export const HTMLRenderer = defineRendererService<
           _templateLayers.set(name, layer);
           names.push(name);
           opts.log?.debug("template layer instantiated", { name, viewportId });
+          // Apply an initial clip (camera at origin, zoom 1) so the layer is
+          // positioned correctly before the first onRender frame.
           layer.applyTransform(0, 0, 1, containerW, containerH, region);
         }
         _templateLayersByViewport.set(viewportId, names);
