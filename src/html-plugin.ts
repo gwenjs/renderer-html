@@ -42,6 +42,7 @@ export const HTMLRendererPlugin = definePlugin(
       layerTemplates: opts.layerTemplates,
       renderFn: opts.renderFn,
       viewportId: opts.viewportId,
+      log: opts.log,
     });
 
     let cameraManager: CameraManager | undefined;
