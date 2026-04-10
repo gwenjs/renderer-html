@@ -85,4 +85,20 @@ declare module "@gwenjs/core" {
      */
     viewportManager: ViewportManager;
   }
+
+  /**
+   * GwenRuntimeHooks augmentation — viewport lifecycle hooks emitted by
+   * `@gwenjs/camera-core` (or any package that manages viewports).
+   *
+   * Declared here so that `HTMLRendererPlugin` can register typed handlers
+   * without a hard dependency on `@gwenjs/camera-core`.
+   */
+  interface GwenRuntimeHooks {
+    /** Fired when a new viewport is registered at runtime. */
+    "viewport:add": (payload: { id: string; region: ViewportRegion }) => void;
+    /** Fired when an existing viewport's region changes. */
+    "viewport:resize": (payload: { id: string; region: ViewportRegion }) => void;
+    /** Fired when a viewport is removed at runtime. */
+    "viewport:remove": (payload: { id: string }) => void;
+  }
 }

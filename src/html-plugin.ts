@@ -11,10 +11,11 @@
  * Perspective cameras are not supported for CSS transforms.
  *
  * Multi-viewport:
- * Each HTMLRendererPlugin instance follows one viewport (via `viewportId` option,
- * or the first registered viewport by default). Split-screen across multiple
- * viewports is not supported in this version — the plugin name `"renderer:html"`
- * is unique and the engine deduplicates plugins by name.
+ * Each layer declares its own `viewportId` in `HTMLLayerDef`. The plugin iterates
+ * all active viewports each frame and calls `applyViewportTransforms` for each.
+ * Static viewports declared in `gwen.config.ts` are bootstrapped in `engine:init`.
+ * Dynamic viewports added via `useViewportManager()` are handled by the
+ * `viewport:add`, `viewport:resize`, and `viewport:remove` hooks.
  */
 
 /// <reference types="vite/client" />
@@ -28,23 +29,11 @@ import type { CameraManager, ViewportManager } from "./camera-types.js";
 export type HTMLRendererPluginOptions = HTMLRendererOptions & {
   /** DOM container to mount layers into. Defaults to document.body. */
   container?: HTMLElement;
-  /**
-   * Which viewport's camera to follow for world-coordinate layers.
-   * Defaults to the first viewport registered with ViewportManager.
-   */
-  viewportId?: string;
 };
 
 export const HTMLRendererPlugin = definePlugin(
   (opts: HTMLRendererPluginOptions = { layers: { main: { order: 0 } } }) => {
-    const service = HTMLRenderer({
-      layers: opts.layers,
-      layerTemplates: opts.layerTemplates,
-      renderFn: opts.renderFn,
-      viewportId: opts.viewportId,
-      log: opts.log,
-    });
-
+    let service: ReturnType<typeof HTMLRenderer>;
     let cameraManager: CameraManager | undefined;
     let viewportManager: ViewportManager | undefined;
 
@@ -52,6 +41,15 @@ export const HTMLRendererPlugin = definePlugin(
       name: "renderer:html",
 
       setup(engine) {
+        const log = engine.logger.child("@gwenjs/renderer-html");
+        service = HTMLRenderer({
+          layers: opts.layers,
+          layerTemplates: opts.layerTemplates,
+          renderFn: opts.renderFn,
+          viewportId: opts.viewportId,
+          log,
+        });
+
         engine.provide("renderer:html", service);
 
         const manager = getOrCreateLayerManager(engine, opts.container ?? document.body);
@@ -65,6 +63,46 @@ export const HTMLRendererPlugin = definePlugin(
           // Optional camera integration — undefined when camera-core is not installed.
           cameraManager = engine.tryInject("cameraManager");
           viewportManager = engine.tryInject("viewportManager");
+
+          // Bootstrap static viewports declared in gwen.config.ts.
+          // These emit viewport:add before engine:init runs, so we enumerate
+          // them explicitly here rather than relying on the hook.
+          for (const [id, vpCtx] of viewportManager?.getAll() ?? []) {
+            service.instantiateTemplates(id, vpCtx.region);
+          }
+
+          // React to viewports added dynamically at runtime via useViewportManager().
+          engine.hooks.hook("viewport:add", ({ id, region }) => {
+            // Restore visibility of static layers that were hidden by a prior
+            // viewport:remove for this same id.
+            service.showViewportLayers(id);
+            // Create template layers for the new viewport.
+            service.instantiateTemplates(id, region);
+          });
+
+          engine.hooks.hook("viewport:resize", ({ id, region }) => {
+            // Re-apply transforms immediately so clip regions update without
+            // waiting for the next onRender frame.
+            const camState = cameraManager?.get(id);
+            if (camState?.active && camState.projection.type === "orthographic") {
+              service.applyViewportTransforms(
+                id,
+                camState.worldTransform.position.x,
+                camState.worldTransform.position.y,
+                camState.projection.zoom,
+                region,
+              );
+            } else {
+              // No active orthographic camera — still update clip regions for
+              // screen layers bound to this viewport.
+              service.applyViewportTransforms(id, 0, 0, 1, region);
+            }
+          });
+
+          engine.hooks.hook("viewport:remove", ({ id }) => {
+            service.clearViewportLayers(id);
+            service.destroyTemplateLayers(id);
+          });
         });
 
         engine.hooks.hook("engine:stop", () => manager.unregister("renderer:html"));
@@ -75,24 +113,19 @@ export const HTMLRendererPlugin = definePlugin(
 
         if (!cameraManager || !viewportManager) return;
 
-        const allViewports = viewportManager.getAll();
-        const targetId = opts.viewportId ?? allViewports.keys().next().value;
-        if (targetId === undefined) return;
-
-        const vpCtx = viewportManager.get(targetId);
-        const camState = cameraManager.get(targetId);
-        if (!vpCtx || !camState || !camState.active) return;
-
-        // Only orthographic projection can be represented as a CSS transform.
-        if (camState.projection.type !== "orthographic") return;
-
-        service.applyViewportTransforms(
-          targetId,
-          camState.worldTransform.position.x,
-          camState.worldTransform.position.y,
-          camState.projection.zoom,
-          vpCtx.region,
-        );
+        for (const [vpId, vpCtx] of viewportManager.getAll()) {
+          const camState = cameraManager.get(vpId);
+          if (!camState?.active) continue;
+          // Only orthographic projection can be represented as a CSS transform.
+          if (camState.projection.type !== "orthographic") continue;
+          service.applyViewportTransforms(
+            vpId,
+            camState.worldTransform.position.x,
+            camState.worldTransform.position.y,
+            camState.projection.zoom,
+            vpCtx.region,
+          );
+        }
       },
     };
   },
