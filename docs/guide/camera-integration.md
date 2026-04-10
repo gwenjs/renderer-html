@@ -104,7 +104,28 @@ By default, `HTMLRendererPlugin` follows the **first registered viewport**. Use
 engine.use(HTMLRendererPlugin({ layers: { ... }, viewportId: 'player1' }))
 ```
 
-For split-screen, create one plugin instance per viewport, each with its own container:
+For split-screen, create one plugin instance per viewport, each with its own container.
+
+**Module system (`gwen.config.ts`):**
+
+```ts
+export default defineConfig({
+  modules: [
+    ['@gwenjs/renderer-html', {
+      layers:     { world: { order: 10, coordinate: 'world' }, hud: { order: 100 } },
+      container:  document.getElementById('viewport-p1')!,
+      viewportId: 'player1',
+    }],
+    ['@gwenjs/renderer-html', {
+      layers:     { world: { order: 10, coordinate: 'world' }, hud: { order: 100 } },
+      container:  document.getElementById('viewport-p2')!,
+      viewportId: 'player2',
+    }],
+  ],
+})
+```
+
+**Direct plugin registration:**
 
 ```ts
 engine.use(HTMLRendererPlugin({
