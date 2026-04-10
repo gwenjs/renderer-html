@@ -133,6 +133,12 @@ export const HTMLRenderer = defineRendererService<
   }
 >((opts) => {
   const htmlLayers = new Map<string, HTMLLayer>();
+  /**
+   * Live layer-def registry shared with defineRendererService.
+   * We keep it as a mutable object so that dynamically instantiated template
+   * layers (added by `instantiateTemplates`) are visible to `getLayerElement`.
+   */
+  const layerRegistry: Record<string, LayerDef> = { ...opts.layers };
   for (const [name, def] of Object.entries(opts.layers)) {
     htmlLayers.set(name, new HTMLLayer(name, def));
   }
@@ -157,7 +163,7 @@ export const HTMLRenderer = defineRendererService<
 
   return {
     name: "renderer:html",
-    layers: opts.layers as Record<string, LayerDef>,
+    layers: layerRegistry,
     createElement: (layerName) => htmlLayers.get(layerName)!.element,
     mount: (ctx: RendererMountContext) => {
       _container = ctx.container;
@@ -229,6 +235,7 @@ export const HTMLRenderer = defineRendererService<
           const layer = new HTMLLayer(name, layerDef);
           if (_container) _container.appendChild(layer.element);
           htmlLayers.set(name, layer);
+          layerRegistry[name] = layerDef;
           _templateLayers.set(name, layer);
           names.push(name);
           opts.log?.debug("template layer instantiated", { name, viewportId });
@@ -246,6 +253,7 @@ export const HTMLRenderer = defineRendererService<
           if (layer) {
             layer.element.remove();
             htmlLayers.delete(name);
+            delete layerRegistry[name];
             _templateLayers.delete(name);
             opts.log?.debug("template layer destroyed", { name, viewportId });
           }
