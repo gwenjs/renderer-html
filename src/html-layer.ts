@@ -183,6 +183,10 @@ export class HTMLLayer {
       const vpW = region.width * containerW;
       const vpH = region.height * containerH;
 
+      // position + overflow are set here rather than in the constructor because
+      // they only apply when viewportId is present at the HTMLLayerDef level —
+      // a screen layer without viewportId stays fullscreen (managed by LayerManager)
+      // and must not be clipped or absolutely positioned.
       this.element.style.position = "absolute";
       this.element.style.overflow = "hidden";
       this.element.style.left = `${vpX}px`;
