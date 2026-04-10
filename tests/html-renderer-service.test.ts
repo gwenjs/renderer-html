@@ -75,3 +75,44 @@ describe('HTMLRenderer (defineRendererService)', () => {
     expect(reportLayer).toHaveBeenCalledWith('hud', expect.objectContaining({ domNodes: 1 }))
   })
 })
+
+describe('HTMLRenderer — resize + applyWorldTransforms', () => {
+  it('applyWorldTransforms applies camera transform to world layers', () => {
+    const service = HTMLRenderer({
+      layers: {
+        world: { order: 10, coordinate: 'world' },
+        hud: { order: 100 },
+      },
+    })
+    service.resize(800, 600)
+    service.applyWorldTransforms(100, 50, 1, { x: 0, y: 0, width: 1, height: 1 })
+
+    const worldEl = service.getLayerElement('world')
+    const inner = worldEl.firstElementChild as HTMLElement
+    // tx = 400 - 100/1 = 300, ty = 300 - 50/1 = 250, scale = 1
+    expect(inner.style.transform).toBe('translate(300px, 250px) scale(1)')
+  })
+
+  it('applyWorldTransforms leaves screen layers untouched', () => {
+    const service = HTMLRenderer({
+      layers: {
+        world: { order: 10, coordinate: 'world' },
+        hud: { order: 100 },
+      },
+    })
+    service.resize(800, 600)
+    service.applyWorldTransforms(100, 50, 1, { x: 0, y: 0, width: 1, height: 1 })
+
+    const hudEl = service.getLayerElement('hud')
+    expect(hudEl.style.transform).toBe('')
+  })
+
+  it('applyWorldTransforms does not throw before resize is called', () => {
+    const service = HTMLRenderer({
+      layers: { world: { order: 10, coordinate: 'world' } },
+    })
+    expect(() =>
+      service.applyWorldTransforms(0, 0, 1, { x: 0, y: 0, width: 1, height: 1 }),
+    ).not.toThrow()
+  })
+})
