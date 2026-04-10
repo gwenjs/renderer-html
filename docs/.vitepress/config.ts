@@ -25,6 +25,7 @@ export default defineConfig({
             items: [
               { text: 'Démarrage rapide', link: '/fr/guide/getting-started' },
               { text: 'Layers', link: '/fr/guide/layers' },
+              { text: 'Intégration caméra', link: '/fr/guide/camera-integration' },
               { text: 'Adaptateurs JSX', link: '/fr/guide/jsx-adapters' },
             ],
           },
@@ -61,6 +62,7 @@ export default defineConfig({
         items: [
           { text: 'Getting Started', link: '/guide/getting-started' },
           { text: 'Layers', link: '/guide/layers' },
+          { text: 'Camera Integration', link: '/guide/camera-integration' },
           { text: 'JSX Adapters', link: '/guide/jsx-adapters' },
         ],
       },
