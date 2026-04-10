@@ -90,9 +90,41 @@ Because the inner div carries the camera transform and each entity slot is a chi
 of that div, `syncWorldPosition` never needs to know about the camera — it simply
 sets the slot's world-unit position and CSS composition does the rest.
 
+## Viewports
+
+A **viewport** is a named region of the container registered with `ViewportManager`
+(provided by `@gwenjs/camera-core`). Each viewport has its own camera and its own
+normalised region `{ x, y, width, height }` within the root container.
+
+By default, `HTMLRendererPlugin` follows the **first registered viewport**. Use
+`viewportId` to target a specific one:
+
+```ts
+// follows the viewport named 'player1'
+engine.use(HTMLRendererPlugin({ layers: { ... }, viewportId: 'player1' }))
+```
+
+For split-screen, create one plugin instance per viewport, each with its own container:
+
+```ts
+engine.use(HTMLRendererPlugin({
+  layers:     { world: { order: 10, coordinate: 'world' }, hud: { order: 100 } },
+  container:  document.getElementById('viewport-p1')!,
+  viewportId: 'player1',
+}))
+
+engine.use(HTMLRendererPlugin({
+  layers:     { world: { order: 10, coordinate: 'world' }, hud: { order: 100 } },
+  container:  document.getElementById('viewport-p2')!,
+  viewportId: 'player2',
+}))
+```
+
+For the full viewport and camera API — how to register viewports, move the camera,
+or change zoom at runtime — see the
+[`@gwenjs/camera-core` documentation](https://gwenjs.github.io/camera-core/).
+
 ## Limitations
 
 - **Perspective cameras (3D):** skipped — CSS cannot represent perspective projection.
-- **Split-screen:** use two `HTMLRendererPlugin` instances with different containers
-  and `viewportId` values.
 - **Camera rotation (2D z-axis):** not applied in this version.
