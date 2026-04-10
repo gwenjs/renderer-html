@@ -37,7 +37,12 @@ export type HTMLRendererPluginOptions = HTMLRendererOptions & {
 
 export const HTMLRendererPlugin = definePlugin(
   (opts: HTMLRendererPluginOptions = { layers: { main: { order: 0 } } }) => {
-    const service = HTMLRenderer({ layers: opts.layers, renderFn: opts.renderFn });
+    const service = HTMLRenderer({
+      layers: opts.layers,
+      layerTemplates: opts.layerTemplates,
+      renderFn: opts.renderFn,
+      viewportId: opts.viewportId,
+    });
 
     let cameraManager: CameraManager | undefined;
     let viewportManager: ViewportManager | undefined;
@@ -80,7 +85,8 @@ export const HTMLRendererPlugin = definePlugin(
         // Only orthographic projection can be represented as a CSS transform.
         if (camState.projection.type !== "orthographic") return;
 
-        service.applyWorldTransforms(
+        service.applyViewportTransforms(
+          targetId,
           camState.worldTransform.position.x,
           camState.worldTransform.position.y,
           camState.projection.zoom,

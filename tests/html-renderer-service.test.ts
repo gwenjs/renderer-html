@@ -76,16 +76,16 @@ describe('HTMLRenderer (defineRendererService)', () => {
   })
 })
 
-describe('HTMLRenderer — resize + applyWorldTransforms', () => {
-  it('applyWorldTransforms applies camera transform to world layers', () => {
+describe('HTMLRenderer — resize + applyViewportTransforms', () => {
+  it('applyViewportTransforms applies camera transform to world layers bound to the given viewport', () => {
     const service = HTMLRenderer({
       layers: {
-        world: { order: 10, coordinate: 'world' },
-        hud: { order: 100 },
+        world: { order: 10, coordinate: 'world', viewportId: 'main' },
+        hud:   { order: 100, viewportId: 'main' },
       },
     })
     service.resize(800, 600)
-    service.applyWorldTransforms(100, 50, 1, { x: 0, y: 0, width: 1, height: 1 })
+    service.applyViewportTransforms('main', 100, 50, 1, { x: 0, y: 0, width: 1, height: 1 })
 
     const worldEl = service.getLayerElement('world')
     const inner = worldEl.firstElementChild as HTMLElement
@@ -93,26 +93,71 @@ describe('HTMLRenderer — resize + applyWorldTransforms', () => {
     expect(inner.style.transform).toBe('translate(300px, 250px) scale(1)')
   })
 
-  it('applyWorldTransforms leaves screen layers untouched', () => {
+  it('applyViewportTransforms skips layers bound to a different viewport', () => {
     const service = HTMLRenderer({
       layers: {
-        world: { order: 10, coordinate: 'world' },
-        hud: { order: 100 },
+        world_p1: { order: 10, coordinate: 'world', viewportId: 'p1' },
+        world_p2: { order: 11, coordinate: 'world', viewportId: 'p2' },
       },
     })
     service.resize(800, 600)
-    service.applyWorldTransforms(100, 50, 1, { x: 0, y: 0, width: 1, height: 1 })
+    service.applyViewportTransforms('p1', 100, 50, 1, { x: 0, y: 0, width: 0.5, height: 1 })
+
+    const inner_p1 = service.getLayerElement('world_p1').firstElementChild as HTMLElement
+    const inner_p2 = service.getLayerElement('world_p2').firstElementChild as HTMLElement
+    // p1 layer was transformed: vpW=400, tx=200-100=100, ty=300-50=250
+    expect(inner_p1.style.transform).toBe('translate(100px, 250px) scale(1)')
+    // p2 layer was NOT transformed
+    expect(inner_p2.style.transform).toBe('')
+  })
+
+  it('applyViewportTransforms leaves screen layers untouched (no camera transform)', () => {
+    const service = HTMLRenderer({
+      layers: {
+        world: { order: 10, coordinate: 'world', viewportId: 'main' },
+        hud:   { order: 100, viewportId: 'main' },
+      },
+    })
+    service.resize(800, 600)
+    service.applyViewportTransforms('main', 100, 50, 1, { x: 0, y: 0, width: 1, height: 1 })
 
     const hudEl = service.getLayerElement('hud')
     expect(hudEl.style.transform).toBe('')
   })
 
-  it('applyWorldTransforms does not throw before resize is called', () => {
+  it('applyViewportTransforms uses opts.viewportId fallback for unbound layers', () => {
+    const service = HTMLRenderer({
+      layers: { world: { order: 10, coordinate: 'world' } },
+      viewportId: 'main',
+    })
+    service.resize(800, 600)
+    service.applyViewportTransforms('main', 0, 0, 1, { x: 0, y: 0, width: 1, height: 1 })
+
+    const inner = service.getLayerElement('world').firstElementChild as HTMLElement
+    expect(inner.style.transform).toBe('translate(400px, 300px) scale(1)')
+  })
+
+  it('applyViewportTransforms uses first-seen viewport as fallback when no viewportId set', () => {
     const service = HTMLRenderer({
       layers: { world: { order: 10, coordinate: 'world' } },
     })
+    service.resize(800, 600)
+    // First call establishes 'main' as the default
+    service.applyViewportTransforms('main', 0, 0, 1, { x: 0, y: 0, width: 1, height: 1 })
+    const inner = service.getLayerElement('world').firstElementChild as HTMLElement
+    expect(inner.style.transform).toBe('translate(400px, 300px) scale(1)')
+
+    // Subsequent call with a different id does NOT transform the unbound layer
+    service.applyViewportTransforms('other', 999, 999, 1, { x: 0, y: 0, width: 1, height: 1 })
+    expect(inner.style.transform).toBe('translate(400px, 300px) scale(1)')
+  })
+
+  it('applyViewportTransforms does not throw before resize is called', () => {
+    const service = HTMLRenderer({
+      layers: { world: { order: 10, coordinate: 'world', viewportId: 'main' } },
+    })
     expect(() =>
-      service.applyWorldTransforms(0, 0, 1, { x: 0, y: 0, width: 1, height: 1 }),
+      service.applyViewportTransforms('main', 0, 0, 1, { x: 0, y: 0, width: 1, height: 1 }),
     ).not.toThrow()
   })
 })
