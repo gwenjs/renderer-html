@@ -33,7 +33,7 @@ export const NPCActor = defineActor(NPCPrefab, () => {
   onUpdate(() => {
     const x = Position.x[entityId]
     const y = Position.y[entityId]
-    bubble.syncWorldPosition(x, y - 60) // 60px above the entity
+    bubble.syncWorldPosition(x, y - 60) // 60 world units above the entity
     bubble.setVisible(Dialogue.active[entityId])
   })
 })

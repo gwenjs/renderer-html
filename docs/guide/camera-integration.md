@@ -35,7 +35,7 @@ engine.use(HTMLRendererPlugin({
 ## Entity code
 
 ```ts
-import { defineActor, onStart, onRender, useEntityId } from '@gwenjs/core/actor'
+import { defineActor, useEntityId } from '@gwenjs/core/actor'
 import { useHTML } from '@gwenjs/renderer-html'
 import { Position } from './components.js'
 
@@ -46,8 +46,8 @@ export const CharacterActor = defineActor(CharacterPrefab, () => {
   onStart(() => handle.mount('<div class="label">Player</div>'))
 
   onRender(() => {
-    // Move the DOM slot to the entity's current world position each frame.
-    // The layer camera transform makes it appear correctly relative to the camera.
+    // Move the DOM slot to the entity's world position each frame.
+    // The layer camera transform handles projection — no camera access needed here.
     handle.syncWorldPosition(Position.x[id], Position.y[id])
   })
 })

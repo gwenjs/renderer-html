@@ -3,10 +3,11 @@
 Options passed to the module in `gwen.config.ts` or directly to `HTMLRendererPlugin`.
 
 ```ts
-interface HTMLRendererOptions {
+interface HTMLRendererPluginOptions {
   layers: Record<string, LayerDef>
   renderFn?: FrameworkRenderFn
   container?: HTMLElement
+  viewportId?: string
 }
 ```
 
@@ -48,3 +49,17 @@ container: document.getElementById('game-root')!
 ```
 
 Only the first renderer plugin to call `getOrCreateLayerManager()` determines the container — subsequent plugins share the same `LayerManager` instance regardless of what they pass.
+
+---
+
+## viewportId
+
+**Optional.** Which viewport's camera to follow for `coordinate: 'world'` layers. Defaults to the first viewport registered with `ViewportManager`.
+
+```ts
+viewportId: 'main'
+```
+
+Only relevant when `@gwenjs/camera-core` is installed. For split-screen setups, create two `HTMLRendererPlugin` instances with different `container` and `viewportId` values.
+
+See [Camera Integration](/guide/camera-integration) for details.
