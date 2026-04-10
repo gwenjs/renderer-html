@@ -18,6 +18,9 @@ export type { HTMLRendererOptions, HTMLRendererService } from "./html-renderer-s
 export { HTMLRendererPlugin } from "./html-plugin.js";
 export type { HTMLRendererPluginOptions } from "./html-plugin.js";
 
+// Layer types (for consumers defining layer configs)
+export type { HTMLLayerDef, HTMLLayerTemplate } from "./html-layer.js";
+
 // Handle internals (for framework adapters)
 export type { FrameworkRenderFn } from "./html-handle.js";
 

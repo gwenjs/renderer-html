@@ -115,7 +115,7 @@ describe('HTMLLayer — world coordinate', () => {
     expect(layer.element.style.width).toBe('400px')
   })
 
-  it('applyTransform is a no-op on screen layers', () => {
+  it('applyTransform is a no-op on screen layers without viewportId', () => {
     const screenLayer = new HTMLLayer('hud', { order: 100 })
     screenLayer.applyTransform(100, 50, 1, 800, 600, { x: 0, y: 0, width: 1, height: 1 } as ViewportRegion)
     expect(screenLayer.element.style.transform).toBe('')
