@@ -17,7 +17,7 @@ A layer is a named `<div>` container managed by `LayerManager`. One renderer ins
 | Field        | Type                      | Default    | Description                                      |
 |--------------|---------------------------|------------|--------------------------------------------------|
 | `order`      | `number`                  | required   | z-index. Must be unique across all renderers.    |
-| `coordinate` | `'screen'` \| `'world'`  | `'screen'` | `'world'` enables `syncWorldPosition()` on handles. |
+| `coordinate` | `'screen'` \| `'world'`  | `'screen'` | `'world'` applies a camera transform to the layer each frame and enables `syncWorldPosition()` on handles. |
 
 ## How layers are mounted
 
@@ -34,7 +34,9 @@ A layer is a named `<div>` container managed by `LayerManager`. One renderer ins
 
 ## Per-entity slots
 
-Inside each layer, every entity that calls `useHTML(layerName)` gets its own child `<div>`:
+Inside each layer, every entity that calls `useHTML(layerName)` gets its own child `<div>`.
+
+**Screen layer** — single div, slots are direct children:
 
 ```html
 <div data-gwen-layer="renderer:html:hud">
@@ -43,4 +45,19 @@ Inside each layer, every entity that calls `useHTML(layerName)` gets its own chi
 </div>
 ```
 
+**World layer** — two-div structure: an outer clip div and an inner camera-transform div. Slots live inside the inner div so the camera transform is applied automatically:
+
+```html
+<div data-gwen-layer="renderer:html:bubbles"
+     style="position:absolute; overflow:hidden; /* viewport region */">
+  <div style="position:absolute; transform-origin:0 0;
+              transform:translate(vpW/2 - camX/zoom, vpH/2 - camY/zoom) scale(1/zoom)">
+    <div data-gwen-slot="42" style="position:absolute"><!-- entity 42 content --></div>
+    <div data-gwen-slot="43" style="position:absolute"><!-- entity 43 content --></div>
+  </div>
+</div>
+```
+
 Slots are allocated on first `useHTML()` call and released automatically on actor destroy.
+
+See [Camera Integration](/guide/camera-integration) for how the inner transform is computed.
