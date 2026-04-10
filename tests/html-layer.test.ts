@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { HTMLLayer } from '../src/html-layer.js'
+import type { ViewportRegion } from '../src/camera-types.js'
 
 describe('HTMLLayer', () => {
   let layer: HTMLLayer
@@ -54,5 +55,66 @@ describe('HTMLLayer', () => {
     expect(layer.activeCount).toBe(2)
     layer.release('a')
     expect(layer.activeCount).toBe(1)
+  })
+})
+
+describe('HTMLLayer — world coordinate', () => {
+  let layer: HTMLLayer
+
+  beforeEach(() => {
+    layer = new HTMLLayer('game', { order: 10, coordinate: 'world' })
+  })
+
+  it('creates an outer overflow-hidden element', () => {
+    expect(layer.element.style.overflow).toBe('hidden')
+    expect(layer.element.style.position).toBe('absolute')
+  })
+
+  it('mounts an inner transform div as first child of element', () => {
+    const inner = layer.element.firstElementChild as HTMLElement
+    expect(inner).toBeTruthy()
+    expect(inner.style.position).toBe('absolute')
+    expect(inner.style.transformOrigin).toBe('0 0')
+  })
+
+  it('allocates entity slots inside the inner div, not the outer element', () => {
+    const slot = layer.allocate('e1')
+    const inner = layer.element.firstElementChild as HTMLElement
+    expect(inner.contains(slot)).toBe(true)
+    expect([...layer.element.children].includes(slot)).toBe(false)
+  })
+
+  it('element.contains(slot) is still true (transitive)', () => {
+    const slot = layer.allocate('e1')
+    expect(layer.element.contains(slot)).toBe(true)
+  })
+
+  it('applyTransform sets inner div transform and outer clip region', () => {
+    layer.applyTransform(100, 50, 1, 800, 600, { x: 0, y: 0, width: 1, height: 1 } as ViewportRegion)
+    const inner = layer.element.firstElementChild as HTMLElement
+    expect(inner.style.transform).toBe('translate(300px, 250px) scale(1)')
+    expect(layer.element.style.left).toBe('0px')
+    expect(layer.element.style.top).toBe('0px')
+    expect(layer.element.style.width).toBe('800px')
+    expect(layer.element.style.height).toBe('600px')
+  })
+
+  it('applyTransform applies zoom scaling', () => {
+    layer.applyTransform(100, 50, 2, 800, 600, { x: 0, y: 0, width: 1, height: 1 } as ViewportRegion)
+    const inner = layer.element.firstElementChild as HTMLElement
+    expect(inner.style.transform).toBe('translate(350px, 275px) scale(0.5)')
+  })
+
+  it('applyTransform handles non-full-screen viewport region', () => {
+    layer.applyTransform(0, 0, 1, 800, 600, { x: 0, y: 0, width: 0.5, height: 1 } as ViewportRegion)
+    const inner = layer.element.firstElementChild as HTMLElement
+    expect(inner.style.transform).toBe('translate(200px, 300px) scale(1)')
+    expect(layer.element.style.width).toBe('400px')
+  })
+
+  it('applyTransform is a no-op on screen layers', () => {
+    const screenLayer = new HTMLLayer('hud', { order: 100 })
+    screenLayer.applyTransform(100, 50, 1, 800, 600, { x: 0, y: 0, width: 1, height: 1 } as ViewportRegion)
+    expect(screenLayer.element.style.transform).toBe('')
   })
 })
