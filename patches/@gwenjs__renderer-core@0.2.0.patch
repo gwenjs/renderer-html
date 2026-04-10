@@ -1,0 +1,36 @@
+diff --git a/dist/define-renderer-service.d.ts b/dist/define-renderer-service.d.ts
+index 649a2c49e9f39a080b205204c8c059c83ef0aafa..c0d81961185fc4c4e4e87c6e28992bd991589c89 100644
+--- a/dist/define-renderer-service.d.ts
++++ b/dist/define-renderer-service.d.ts
+@@ -83,6 +83,19 @@ export interface RendererServiceDef<TExtension extends object = {}> {
+      * ```
+      */
+     extension?: TExtension;
++    /**
++     * Optional cache invalidation hook. When present as a field in the returned
++     * `RendererServiceDef`, `defineRendererService` will replace its value with
++     * a function that evicts the named layer from the internal element cache.
++     * This allows `destroyTemplateLayers` to force a fresh DOM element on
++     * re-instantiation.
++     *
++     * Usage: declare the field as `invalidateLayerCache: undefined` (or any value)
++     * in the def object returned by the factory. `defineRendererService` will
++     * overwrite it with the real invalidation function before any service method
++     * is called.
++     */
++    invalidateLayerCache?: (layerName: string) => void;
+ }
+ /**
+  * A fully-wired `RendererService` with an additional `flush()` method for
+diff --git a/dist/index.js b/dist/index.js
+index f39a43b5dffbb505ef95d9175efe63447e3124a7..f635c109917c448d53afc0c4a0061a4029a521aa 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -194,6 +194,7 @@ function d(e) {
+ 			reportFrameTime: (e) => i?.reportFrameTime(e),
+ 			reportLayer: (e, t) => i?.reportLayer(e, t)
+ 		};
++		if ('invalidateLayerCache' in n) n.invalidateLayerCache = (e) => r.delete(e);
+ 		return {
+ 			...n.extension,
+ 			name: n.name,
