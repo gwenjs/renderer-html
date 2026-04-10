@@ -12,8 +12,9 @@
  *
  * Multi-viewport:
  * Each HTMLRendererPlugin instance follows one viewport (via `viewportId` option,
- * or the first registered viewport by default). For split-screen, use two
- * HTMLRendererPlugin instances with separate containers and different viewportIds.
+ * or the first registered viewport by default). Split-screen across multiple
+ * viewports is not supported in this version — the plugin name `"renderer:html"`
+ * is unique and the engine deduplicates plugins by name.
  */
 
 /// <reference types="vite/client" />
@@ -30,7 +31,6 @@ export type HTMLRendererPluginOptions = HTMLRendererOptions & {
   /**
    * Which viewport's camera to follow for world-coordinate layers.
    * Defaults to the first viewport registered with ViewportManager.
-   * For split-screen, use separate HTMLRendererPlugin instances per viewport.
    */
   viewportId?: string;
 };
