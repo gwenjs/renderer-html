@@ -60,6 +60,6 @@ Only the first renderer plugin to call `getOrCreateLayerManager()` determines th
 viewportId: 'main'
 ```
 
-Only relevant when `@gwenjs/camera-core` is installed. For split-screen setups, create two `HTMLRendererPlugin` instances with different `container` and `viewportId` values.
+Only relevant when `@gwenjs/camera-core` is installed. When multiple viewports are declared, use `viewportId` to specify which one this renderer follows.
 
 See [Camera Integration](/guide/camera-integration) for details.

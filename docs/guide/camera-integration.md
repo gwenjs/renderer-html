@@ -140,4 +140,8 @@ For viewport layouts (split-screen, minimap, 4-player grid), the dynamic
 
 - **Perspective cameras (3D):** skipped — CSS cannot represent a perspective
   projection as a 2D CSS transform.
+- **Split-screen:** not supported in this version. The engine deduplicates plugins
+  by name and `HTMLRendererPlugin` always registers as `"renderer:html"`, so a
+  second instance is silently ignored. Only one viewport can be followed per game
+  instance.
 - **Camera rotation (2D z-axis):** not applied in this version.
