@@ -92,60 +92,52 @@ sets the slot's world-unit position and CSS composition does the rest.
 
 ## Viewports
 
-A **viewport** is a named region of the container registered with `ViewportManager`
-(provided by `@gwenjs/camera-core`). Each viewport has its own camera and its own
-normalised region `{ x, y, width, height }` within the root container.
-
-By default, `HTMLRendererPlugin` follows the **first registered viewport**. Use
-`viewportId` to target a specific one:
+Viewports are declared in `gwen.config.ts` under the `viewports` key — GWEN
+registers them automatically at startup, before any renderer plugin runs. You do
+not configure viewports in `HTMLRendererPlugin`.
 
 ```ts
-// follows the viewport named 'player1'
-engine.use(HTMLRendererPlugin({ layers: { ... }, viewportId: 'player1' }))
-```
-
-For split-screen, create one plugin instance per viewport, each with its own container.
-
-**Module system (`gwen.config.ts`):**
-
-```ts
+// gwen.config.ts
 export default defineConfig({
-  modules: [
-    ['@gwenjs/renderer-html', {
-      layers:     { world: { order: 10, coordinate: 'world' }, hud: { order: 100 } },
-      container:  document.getElementById('viewport-p1')!,
-      viewportId: 'player1',
-    }],
-    ['@gwenjs/renderer-html', {
-      layers:     { world: { order: 10, coordinate: 'world' }, hud: { order: 100 } },
-      container:  document.getElementById('viewport-p2')!,
-      viewportId: 'player2',
-    }],
-  ],
+  modules: ['@gwenjs/camera2d', '@gwenjs/renderer-html'],
+  viewports: {
+    main: { x: 0, y: 0, width: 1, height: 1 },
+  },
 })
 ```
 
-**Direct plugin registration:**
+::: tip Default viewport
+If you omit `viewports` entirely, GWEN creates a single fullscreen viewport named
+`'main'` automatically. You only need to declare it explicitly when you want more
+than one.
+:::
+
+`HTMLRendererPlugin` follows the **first registered viewport** by default. Use
+`viewportId` to target a specific one — useful when multiple viewports are declared:
 
 ```ts
-engine.use(HTMLRendererPlugin({
-  layers:     { world: { order: 10, coordinate: 'world' }, hud: { order: 100 } },
-  container:  document.getElementById('viewport-p1')!,
-  viewportId: 'player1',
-}))
-
-engine.use(HTMLRendererPlugin({
-  layers:     { world: { order: 10, coordinate: 'world' }, hud: { order: 100 } },
-  container:  document.getElementById('viewport-p2')!,
-  viewportId: 'player2',
-}))
+// gwen.config.ts
+export default defineConfig({
+  modules: [
+    '@gwenjs/camera2d',
+    ['@gwenjs/renderer-html', { layers: { world: { order: 10, coordinate: 'world' } }, viewportId: 'main' }],
+  ],
+  viewports: {
+    main:    { x: 0,    y: 0,    width: 1,    height: 1    },
+    minimap: { x: 0.75, y: 0.75, width: 0.25, height: 0.25 },
+  },
+})
 ```
 
-For the full viewport and camera API — how to register viewports, move the camera,
-or change zoom at runtime — see the
-[`@gwenjs/camera-core` documentation](https://gwenjs.github.io/camera-core/).
+World layers clip and transform themselves to the target viewport's region
+automatically — no extra CSS or container setup needed.
+
+For viewport layouts (split-screen, minimap, 4-player grid), the dynamic
+`useViewportManager()` API, and how to bind a camera to a viewport, see the
+[Viewports guide](https://gwenjs.github.io/docs/rendering/viewports).
 
 ## Limitations
 
-- **Perspective cameras (3D):** skipped — CSS cannot represent perspective projection.
+- **Perspective cameras (3D):** skipped — CSS cannot represent a perspective
+  projection as a 2D CSS transform.
 - **Camera rotation (2D z-axis):** not applied in this version.
