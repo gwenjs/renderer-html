@@ -19,8 +19,25 @@ The plugin reads `CameraManager` and `ViewportManager` from the engine after
 
 ## Setup
 
+**Module system (`gwen.config.ts`):**
+
 ```ts
-// gwen.config.ts
+export default defineConfig({
+  modules: [
+    ['@gwenjs/renderer-html', {
+      layers: {
+        world: { order: 10, coordinate: 'world' },
+        hud:   { order: 100 },
+      },
+      viewportId: 'main', // optional — defaults to first registered viewport
+    }],
+  ],
+})
+```
+
+**Direct plugin registration:**
+
+```ts
 import { HTMLRendererPlugin } from '@gwenjs/renderer-html'
 
 engine.use(HTMLRendererPlugin({
