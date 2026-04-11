@@ -66,10 +66,20 @@ export const HTMLRendererPlugin = definePlugin(
           cameraManager = engine.tryInject("cameraManager");
           viewportManager = engine.tryInject("viewportManager");
 
+          if (cameraManager && viewportManager) {
+            log.debug("camera integration active — world-space layers will track the camera");
+          } else {
+            log.debug(
+              "camera integration not available — install @gwenjs/camera-core to enable world-space transforms",
+            );
+          }
+
           // Bootstrap static viewports declared in gwen.config.ts.
           // These emit viewport:add before engine:init runs, so we enumerate
           // them explicitly here rather than relying on the hook.
-          for (const [id, vpCtx] of viewportManager?.getAll() ?? []) {
+          const staticViewports = viewportManager?.getAll() ?? new Map();
+          for (const [id, vpCtx] of staticViewports) {
+            log.debug("bootstrapping static viewport", { id });
             service.instantiateTemplates(id, vpCtx.region);
           }
 
@@ -78,6 +88,7 @@ export const HTMLRendererPlugin = definePlugin(
           // any viewport hook callback can fire.
           // React to viewports added dynamically at runtime via useViewportManager().
           engine.hooks.hook("viewport:add", ({ id, region }) => {
+            log.debug("viewport:add", { id });
             // Restore visibility of static layers that were hidden by a prior
             // viewport:remove for this same id.
             service.showViewportLayers(id);
@@ -86,6 +97,7 @@ export const HTMLRendererPlugin = definePlugin(
           });
 
           engine.hooks.hook("viewport:resize", ({ id, region }) => {
+            log.debug("viewport:resize", { id });
             // Re-apply transforms immediately so clip regions update without
             // waiting for the next onRender frame.
             const camState = cameraManager?.get(id);
@@ -105,6 +117,7 @@ export const HTMLRendererPlugin = definePlugin(
           });
 
           engine.hooks.hook("viewport:remove", ({ id }) => {
+            log.debug("viewport:remove", { id });
             service.clearViewportLayers(id);
             service.destroyTemplateLayers(id);
           });

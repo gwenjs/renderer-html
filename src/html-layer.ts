@@ -16,6 +16,7 @@
  * transform is applied — the layer remains fullscreen (managed by LayerManager).
  */
 
+import type { GwenLogger } from "@gwenjs/core";
 import type { LayerDef } from "@gwenjs/renderer-core";
 import type { ViewportRegion } from "./camera-types.js";
 
@@ -59,12 +60,14 @@ export class HTMLLayer {
    * after a viewport:remove — entities must remount when the viewport returns.
    */
   private _suspended = false;
+  private readonly _log: GwenLogger | undefined;
   readonly layerName: string;
   readonly def: HTMLLayerDef;
 
-  constructor(layerName: string, def: HTMLLayerDef) {
+  constructor(layerName: string, def: HTMLLayerDef, log?: GwenLogger) {
     this.layerName = layerName;
     this.def = def;
+    this._log = log;
 
     this.element = document.createElement("div");
     this.element.setAttribute("data-gwen-layer", `renderer:html:${layerName}`);
@@ -90,9 +93,15 @@ export class HTMLLayer {
    *
    * While the layer is suspended (viewport removed), returns a detached dummy div
    * so that handle operations become no-ops — slots are not recreated in the DOM.
+   * A warning is logged when a handle operates on a suspended layer, as the entity
+   * will need to remount its content when the viewport returns.
    */
   allocate(key: string): HTMLDivElement {
     if (this._suspended) {
+      this._log?.warn(
+        "slot operation on suspended layer — changes are discarded until the viewport returns",
+        { layer: this.layerName, key },
+      );
       return (this._dummySlot ??= document.createElement("div"));
     }
     if (this._slots.has(key)) return this._slots.get(key)!;
@@ -122,6 +131,8 @@ export class HTMLLayer {
    * the viewport is re-added.
    */
   clearSlots(): void {
+    const count = this._slots.size;
+    this._log?.debug("clearing all slots", { layer: this.layerName, count });
     for (const key of Array.from(this._slots.keys())) {
       this.release(key);
     }
@@ -135,15 +146,20 @@ export class HTMLLayer {
   }
 
   /**
-   * Show or hide the entire layer element.
+   * Show or hide the entire layer element and toggle the suspension flag.
    * Called by the plugin on `viewport:remove` (hide) and `viewport:add` (show).
    * Distinct from `setVisible(key)`, which acts on a single slot.
    *
-   * @param visible - `true` to show, `false` to hide.
+   * When hidden, `allocate()` returns a detached dummy slot so that any handle
+   * operations (mount, syncWorldPosition…) during suspension are safe no-ops.
+   * On the next `viewport:add`, entities must remount their content.
+   *
+   * @param visible - `true` to show and resume, `false` to hide and suspend.
    */
   setLayerVisible(visible: boolean): void {
     this._suspended = !visible;
     this.element.style.display = visible ? "" : "none";
+    this._log?.debug(visible ? "layer resumed" : "layer suspended", { layer: this.layerName });
   }
 
   /**
