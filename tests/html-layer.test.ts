@@ -115,6 +115,12 @@ describe('HTMLLayer — world coordinate', () => {
     expect(layer.element.style.width).toBe('400px')
   })
 
+  it('applyTransform resets right and bottom to prevent inset:0 conflict', () => {
+    layer.applyTransform(0, 0, 1, 800, 600, { x: 0, y: 0, width: 0.5, height: 1 } as ViewportRegion)
+    expect(layer.element.style.right).toBe('auto')
+    expect(layer.element.style.bottom).toBe('auto')
+  })
+
   it('applyTransform is a no-op on screen layers without viewportId', () => {
     const screenLayer = new HTMLLayer('hud', { order: 100 })
     screenLayer.applyTransform(100, 50, 1, 800, 600, { x: 0, y: 0, width: 1, height: 1 } as ViewportRegion)
@@ -175,6 +181,8 @@ describe('HTMLLayer — screen layer with viewportId', () => {
     expect(layer.element.style.top).toBe('0px')
     expect(layer.element.style.width).toBe('400px')
     expect(layer.element.style.height).toBe('600px')
+    expect(layer.element.style.right).toBe('auto')
+    expect(layer.element.style.bottom).toBe('auto')
   })
 
   it('does NOT apply a camera transform to the element', () => {
