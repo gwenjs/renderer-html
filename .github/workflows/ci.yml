@@ -28,7 +28,7 @@ jobs:
       - run: pnpm build
 
   status:
-    name: CI
+    name: Status
     runs-on: ubuntu-latest
     needs: [check]
     if: always()
