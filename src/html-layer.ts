@@ -104,7 +104,7 @@ export class HTMLLayer {
    * the viewport is re-added.
    */
   clearSlots(): void {
-    for (const key of [...this._slots.keys()]) {
+    for (const key of Array.from(this._slots.keys())) {
       this.release(key);
     }
   }
