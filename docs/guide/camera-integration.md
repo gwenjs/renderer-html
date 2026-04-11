@@ -203,8 +203,9 @@ export default defineConfig({
 ```ts
 // PlayerSystem.ts — mount HUD for each player that joins
 import { useEngine } from '@gwenjs/core'
-import { useHTML } from '@gwenjs/renderer-html'
 import { defineSystem } from '@gwenjs/core/system'
+import { useViewportManager } from '@gwenjs/renderer-core'
+import { useHTML } from '@gwenjs/renderer-html'
 
 export const PlayerSystem = defineSystem('PlayerSystem', () => {
   const engine = useEngine()

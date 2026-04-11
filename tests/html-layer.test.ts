@@ -157,6 +157,32 @@ describe('HTMLLayer — setLayerVisible', () => {
     layer.setLayerVisible(true)
     expect(layer.element.style.display).toBe('')
   })
+
+  it('suspends allocate() while hidden — returns detached dummy slot, not a live DOM node', () => {
+    const layer = new HTMLLayer('world', { order: 10, coordinate: 'world' })
+    layer.setLayerVisible(false)
+
+    const dummy = layer.allocate('entity-1')
+    // Dummy slot must not be inside any document element
+    expect(document.body.contains(dummy)).toBe(false)
+    expect(layer.element.contains(dummy)).toBe(false)
+  })
+
+  it('resume allocate() after setLayerVisible(true) — new slots go into the DOM', () => {
+    const layer = new HTMLLayer('world', { order: 10, coordinate: 'world' })
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    container.appendChild(layer.element)
+
+    layer.setLayerVisible(false)
+    layer.allocate('entity-1') // no-op while suspended
+
+    layer.setLayerVisible(true)
+    const slot = layer.allocate('entity-1')
+    expect(layer.element.contains(slot)).toBe(true)
+
+    container.remove()
+  })
 })
 
 describe('HTMLLayerDef — type compatibility', () => {
