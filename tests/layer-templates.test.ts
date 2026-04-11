@@ -27,6 +27,23 @@ describe('layer templates — full lifecycle', () => {
     return { service, container }
   }
 
+  it('instantiateTemplates sets zIndex and pointerEvents on template layers', () => {
+    const { service } = makeService()
+    service.instantiateTemplates('p1', { x: 0, y: 0, width: 0.5, height: 1 })
+
+    const worldEl = service.getLayerElement('world_p1')
+    const hudEl = service.getLayerElement('hud_p1')
+
+    // zIndex must match the template order so static layers respect z-ordering
+    expect(worldEl.style.zIndex).toBe('10')
+    expect(hudEl.style.zIndex).toBe('100')
+
+    // screen layers must not block pointer events (world layers use pointer-events: auto via children)
+    expect(hudEl.style.pointerEvents).toBe('none')
+    // world layer outer div is position:absolute/overflow:hidden — pointer-events not forced to none
+    expect(worldEl.style.pointerEvents).not.toBe('none')
+  })
+
   it('instantiateTemplates creates both template layers with correct names', () => {
     const { service } = makeService()
     service.instantiateTemplates('p1', { x: 0, y: 0, width: 0.5, height: 1 })

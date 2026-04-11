@@ -232,6 +232,12 @@ export const HTMLRenderer = defineRendererService<
           const name = pattern.replace("{id}", viewportId);
           const layerDef: HTMLLayerDef = { ...def, viewportId };
           const layer = new HTMLLayer(name, layerDef);
+          // Mirror the styling LayerManager applies to static layers:
+          // z-index from order and pointer-events none on screen layers.
+          layer.element.style.zIndex = String(layerDef.order);
+          if (layerDef.coordinate !== "world") {
+            layer.element.style.pointerEvents = "none";
+          }
           if (_container) _container.appendChild(layer.element);
           htmlLayers.set(name, layer);
           layerRegistry[name] = layerDef;
