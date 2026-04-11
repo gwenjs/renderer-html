@@ -60,6 +60,12 @@ export class HTMLLayer {
    * after a viewport:remove — entities must remount when the viewport returns.
    */
   private _suspended = false;
+  /**
+   * Tracks keys that have already received a suspension warning in the current
+   * suspend cycle. Cleared on `setLayerVisible(true)` to allow a fresh warning
+   * if the same key operates after a future `viewport:remove`.
+   */
+  private _warnedSuspendedKeys = new Set<string>();
   private readonly _log: GwenLogger | undefined;
   readonly layerName: string;
   readonly def: HTMLLayerDef;
@@ -98,10 +104,13 @@ export class HTMLLayer {
    */
   allocate(key: string): HTMLDivElement {
     if (this._suspended) {
-      this._log?.warn(
-        "slot operation on suspended layer — changes are discarded until the viewport returns",
-        { layer: this.layerName, key },
-      );
+      if (!this._warnedSuspendedKeys.has(key)) {
+        this._warnedSuspendedKeys.add(key);
+        this._log?.warn(
+          "slot operation on suspended layer — changes are discarded until the viewport returns",
+          { layer: this.layerName, key },
+        );
+      }
       return (this._dummySlot ??= document.createElement("div"));
     }
     if (this._slots.has(key)) return this._slots.get(key)!;
@@ -158,6 +167,7 @@ export class HTMLLayer {
    */
   setLayerVisible(visible: boolean): void {
     this._suspended = !visible;
+    if (visible) this._warnedSuspendedKeys.clear();
     this.element.style.display = visible ? "" : "none";
     this._log?.debug(visible ? "layer resumed" : "layer suspended", { layer: this.layerName });
   }
