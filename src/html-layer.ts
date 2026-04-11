@@ -116,6 +116,10 @@ export class HTMLLayer {
     const vpW = region.width * containerW;
     const vpH = region.height * containerH;
 
+    // Clear any inset shorthand (LayerManager mounts with inset:0) so that
+    // explicit width/height are not over-constrained by a residual right/bottom:0.
+    this.element.style.right = "auto";
+    this.element.style.bottom = "auto";
     this.element.style.left = `${vpX}px`;
     this.element.style.top = `${vpY}px`;
     this.element.style.width = `${vpW}px`;

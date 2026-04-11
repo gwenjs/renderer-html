@@ -97,6 +97,8 @@ describe('HTMLLayer — world coordinate', () => {
     expect(layer.element.style.top).toBe('0px')
     expect(layer.element.style.width).toBe('800px')
     expect(layer.element.style.height).toBe('600px')
+    expect(layer.element.style.right).toBe('auto')
+    expect(layer.element.style.bottom).toBe('auto')
   })
 
   it('applyTransform applies zoom scaling', () => {
