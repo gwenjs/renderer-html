@@ -2,13 +2,17 @@
  * Integration test: layer template lifecycle
  * instantiateTemplates → mount content → destroyTemplateLayers → re-instantiate → content gone
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import { HTMLRenderer } from '../src/html-renderer-service.js'
 
 describe('layer templates — full lifecycle', () => {
+  const containers: HTMLElement[] = []
+  afterEach(() => { containers.splice(0).forEach(c => c.remove()) })
+
   function makeService() {
     const container = document.createElement('div')
     document.body.appendChild(container)
+    containers.push(container)
     const service = HTMLRenderer({
       layers: {
         overlay: { order: 200 },
