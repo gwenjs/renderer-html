@@ -140,7 +140,7 @@ export const HTMLRenderer = defineRendererService<
    */
   const layerRegistry: Record<string, LayerDef> = { ...opts.layers };
   for (const [name, def] of Object.entries(opts.layers)) {
-    htmlLayers.set(name, new HTMLLayer(name, def));
+    htmlLayers.set(name, new HTMLLayer(name, def, opts.log));
   }
 
   let containerW = 0;
@@ -152,12 +152,43 @@ export const HTMLRenderer = defineRendererService<
   const _templateLayers = new Map<string, HTMLLayer>();
   /** Template layer names grouped by the viewport ID that created them. */
   const _templateLayersByViewport = new Map<string, string[]>();
+
   /**
-   * Resolve which viewport a layer is bound to using the three-level priority chain.
-   * Returns `undefined` only when no viewport has been seen yet.
+   * Resolve which viewport a layer is bound to using the three-level priority chain:
+   * 1. `layer.def.viewportId`  — explicit per-layer binding
+   * 2. `opts.viewportId`       — plugin-level fallback
+   * 3. `_firstViewportId`      — first viewport seen by any service method
+   *
+   * Returns `undefined` only before any viewport has been seen.
    */
   function resolveViewport(layer: HTMLLayer): string | undefined {
     return layer.def.viewportId ?? opts.viewportId ?? _firstViewportId;
+  }
+
+  /**
+   * Record the first-seen viewport ID and emit a one-time diagnostic when the
+   * global fallback is activated (i.e. neither explicit nor plugin-level binding
+   * is set for at least one layer).
+   */
+  function trackFirstViewport(viewportId: string): void {
+    if (_firstViewportId) return;
+    _firstViewportId = viewportId;
+    // Only warn when the fallback would actually be used — i.e. when some layer
+    // has no explicit viewportId and no plugin-level opts.viewportId is set.
+    if (!opts.viewportId) {
+      const hasUnboundLayer = Array.from(htmlLayers.values()).some(
+        (l) => l.def.viewportId === undefined,
+      );
+      if (hasUnboundLayer) {
+        opts.log?.debug(
+          "no explicit viewportId set — using first-seen viewport as fallback for unbound layers",
+          {
+            viewportId,
+            tip: "Set opts.viewportId or layer.def.viewportId to opt out of this fallback",
+          },
+        );
+      }
+    }
   }
 
   return {
@@ -190,7 +221,8 @@ export const HTMLRenderer = defineRendererService<
           opts.log?.error("unknown layer requested", { layerName });
           throw new UnknownLayerError(layerName, "renderer:html");
         }
-        return new HTMLHandleImpl(layer, slotKey, opts.renderFn);
+        opts.log?.debug("handle allocated", { layerName, slotKey });
+        return new HTMLHandleImpl(layer, slotKey, opts.renderFn, opts.log);
       },
 
       applyViewportTransforms(
@@ -200,7 +232,7 @@ export const HTMLRenderer = defineRendererService<
         zoom: number,
         region: ViewportRegion,
       ): void {
-        if (!_firstViewportId) _firstViewportId = viewportId;
+        trackFirstViewport(viewportId);
         for (const layer of htmlLayers.values()) {
           if (resolveViewport(layer) !== viewportId) continue;
           layer.applyTransform(camX, camY, zoom, containerW, containerH, region);
@@ -208,18 +240,20 @@ export const HTMLRenderer = defineRendererService<
       },
 
       clearViewportLayers(viewportId: string): void {
-        if (!_firstViewportId) _firstViewportId = viewportId;
+        trackFirstViewport(viewportId);
         for (const layer of htmlLayers.values()) {
           if (resolveViewport(layer) !== viewportId) continue;
+          opts.log?.debug("clearing viewport layer", { layerName: layer.layerName, viewportId });
           layer.clearSlots();
           layer.setLayerVisible(false);
         }
       },
 
       showViewportLayers(viewportId: string): void {
-        if (!_firstViewportId) _firstViewportId = viewportId;
+        trackFirstViewport(viewportId);
         for (const layer of htmlLayers.values()) {
           if (resolveViewport(layer) !== viewportId) continue;
+          opts.log?.debug("showing viewport layer", { layerName: layer.layerName, viewportId });
           layer.setLayerVisible(true);
         }
       },
@@ -231,7 +265,7 @@ export const HTMLRenderer = defineRendererService<
         for (const [pattern, def] of Object.entries(opts.layerTemplates)) {
           const name = pattern.replace("{id}", viewportId);
           const layerDef: HTMLLayerDef = { ...def, viewportId };
-          const layer = new HTMLLayer(name, layerDef);
+          const layer = new HTMLLayer(name, layerDef, opts.log);
           // Mirror the styling LayerManager applies to static layers:
           // z-index from order and pointer-events none on screen layers.
           layer.element.style.zIndex = String(layerDef.order);

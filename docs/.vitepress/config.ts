@@ -27,6 +27,7 @@ export default defineConfig({
               { text: 'Layers', link: '/fr/guide/layers' },
               { text: 'Intégration caméra', link: '/fr/guide/camera-integration' },
               { text: 'Adaptateurs JSX', link: '/fr/guide/jsx-adapters' },
+              { text: 'Architecture', link: '/guide/architecture' },
             ],
           },
           {
@@ -64,6 +65,7 @@ export default defineConfig({
           { text: 'Layers', link: '/guide/layers' },
           { text: 'Camera Integration', link: '/guide/camera-integration' },
           { text: 'JSX Adapters', link: '/guide/jsx-adapters' },
+          { text: 'Architecture', link: '/guide/architecture' },
         ],
       },
       {
