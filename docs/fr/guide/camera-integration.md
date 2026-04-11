@@ -80,7 +80,10 @@ Pour une caméra orthographique avec zoom (unités monde par pixel) centrée en
 `(camX, camY)` sur un viewport de taille `(vpW, vpH)` en pixels :
 
 ```
-div intérieure du layer :
+div extérieure du layer  (dimensionnement + découpe du viewport) :
+  position: absolute; left/top/width/height → région du viewport
+
+div intérieure du layer  (transformation caméra) :
   transform-origin: 0 0
   transform: translate(vpW/2 - camX/zoom, vpH/2 - camY/zoom) scale(1/zoom)
 

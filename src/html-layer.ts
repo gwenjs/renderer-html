@@ -161,14 +161,13 @@ export class HTMLLayer {
       const vpW = region.width * containerW;
       const vpH = region.height * containerH;
 
-    // Clear any inset shorthand (LayerManager mounts with inset:0) so that
-    // explicit width/height are not over-constrained by a residual right/bottom:0.
-    this.element.style.right = "auto";
-    this.element.style.bottom = "auto";
-    this.element.style.left = `${vpX}px`;
-    this.element.style.top = `${vpY}px`;
-    this.element.style.width = `${vpW}px`;
-    this.element.style.height = `${vpH}px`;
+      // Reset right/bottom so inset:0 from LayerManager does not fight width/height.
+      this.element.style.right = "auto";
+      this.element.style.bottom = "auto";
+      this.element.style.left = `${vpX}px`;
+      this.element.style.top = `${vpY}px`;
+      this.element.style.width = `${vpW}px`;
+      this.element.style.height = `${vpH}px`;
 
       const tx = vpW / 2 - camX / zoom;
       const ty = vpH / 2 - camY / zoom;
@@ -187,6 +186,9 @@ export class HTMLLayer {
       // they only apply when viewportId is present at the HTMLLayerDef level —
       // a screen layer without viewportId stays fullscreen (managed by LayerManager)
       // and must not be clipped or absolutely positioned.
+      // Reset right/bottom so inset:0 from LayerManager does not fight width/height.
+      this.element.style.right = "auto";
+      this.element.style.bottom = "auto";
       this.element.style.position = "absolute";
       this.element.style.overflow = "hidden";
       this.element.style.left = `${vpX}px`;

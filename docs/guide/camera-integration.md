@@ -78,7 +78,10 @@ For an orthographic camera with zoom (world units per pixel) centered at
 `(camX, camY)` over a viewport of pixel size `(vpW, vpH)`:
 
 ```
-layer inner div:
+layer outer div  (viewport sizing + clipping):
+  position: absolute; left/top/width/height → viewport region
+
+layer inner div  (camera transform):
   transform-origin: 0 0
   transform: translate(vpW/2 - camX/zoom, vpH/2 - camY/zoom) scale(1/zoom)
 
