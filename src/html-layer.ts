@@ -47,6 +47,18 @@ export class HTMLLayer {
    */
   private readonly _inner: HTMLDivElement;
   private readonly _slots = new Map<string, HTMLDivElement>();
+  /**
+   * Detached div returned by `allocate()` while the layer is suspended.
+   * Writes to this div are silently discarded (it is never in the DOM).
+   */
+  private _dummySlot: HTMLDivElement | undefined;
+  /**
+   * When `true`, `allocate()` returns a detached dummy slot instead of creating
+   * a real DOM node. Set by `setLayerVisible(false)`, cleared by `setLayerVisible(true)`.
+   * Prevents handle operations (mount, syncWorldPosition…) from recreating slots
+   * after a viewport:remove — entities must remount when the viewport returns.
+   */
+  private _suspended = false;
   readonly layerName: string;
   readonly def: HTMLLayerDef;
 
@@ -75,8 +87,14 @@ export class HTMLLayer {
    * Allocate a container div for the given slot key (typically an entity ID string).
    * Returns the existing container if already allocated.
    * For world layers, slots are children of the inner camera-transform div.
+   *
+   * While the layer is suspended (viewport removed), returns a detached dummy div
+   * so that handle operations become no-ops — slots are not recreated in the DOM.
    */
   allocate(key: string): HTMLDivElement {
+    if (this._suspended) {
+      return (this._dummySlot ??= document.createElement("div"));
+    }
     if (this._slots.has(key)) return this._slots.get(key)!;
 
     const container = document.createElement("div");
@@ -124,6 +142,7 @@ export class HTMLLayer {
    * @param visible - `true` to show, `false` to hide.
    */
   setLayerVisible(visible: boolean): void {
+    this._suspended = !visible;
     this.element.style.display = visible ? "" : "none";
   }
 
