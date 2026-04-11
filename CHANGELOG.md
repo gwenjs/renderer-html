@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/gwenjs/renderer-html/compare/renderer-html-v0.2.0...renderer-html-v0.2.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* **ci:** Update .github/workflows/ci.yml renaming ([4f25d53](https://github.com/gwenjs/renderer-html/commit/4f25d532bce0cb1bc81728af5e6dd3aa0ad37f6c))
+* **ci:** Update .github/workflows/ci.yml status ([e4452de](https://github.com/gwenjs/renderer-html/commit/e4452de17152527190aa2d1bd18959e5e758dbf4))
+* **ci:** Update .github/workflows/release.yml ([397973d](https://github.com/gwenjs/renderer-html/commit/397973d2d7487d6d4e3c32f31dea3d7901dd764b))
+
 ## [0.2.0](https://github.com/gwenjs/renderer-html/compare/renderer-html-v0.1.0...renderer-html-v0.2.0) (2026-04-11)
 
 
