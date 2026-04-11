@@ -11,9 +11,11 @@
  * Perspective cameras are not supported for CSS transforms.
  *
  * Multi-viewport:
- * Each layer declares its own `viewportId` in `HTMLLayerDef`. The plugin iterates
- * all active viewports each frame and calls `applyViewportTransforms` for each.
- * Static viewports declared in `gwen.config.ts` are bootstrapped in `engine:init`.
+ * Each layer can declare its own `viewportId` in `HTMLLayerDef` to bind it to a specific
+ * viewport. Layers without `viewportId` fall back to `opts.viewportId` (plugin-level),
+ * then to the first active viewport (global fallback).
+ * The plugin iterates all active viewports each frame and calls `applyViewportTransforms`
+ * for each. Static viewports declared in `gwen.config.ts` are bootstrapped in `engine:init`.
  * Dynamic viewports added via `useViewportManager()` are handled by the
  * `viewport:add`, `viewport:resize`, and `viewport:remove` hooks.
  */
@@ -71,6 +73,9 @@ export const HTMLRendererPlugin = definePlugin(
             service.instantiateTemplates(id, vpCtx.region);
           }
 
+          // Viewport hooks are registered here (inside engine:init) rather than in setup()
+          // to guarantee that cameraManager and viewportManager are resolved before
+          // any viewport hook callback can fire.
           // React to viewports added dynamically at runtime via useViewportManager().
           engine.hooks.hook("viewport:add", ({ id, region }) => {
             // Restore visibility of static layers that were hidden by a prior
