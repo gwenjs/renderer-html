@@ -8,7 +8,8 @@ frame without any extra setup in entity code.
 
 - **Screen layers** (`coordinate: 'screen'` or unset): positions are in CSS pixels
   relative to the viewport — no camera transform applied.
-- **World layers** (`coordinate: 'world'`): the layer element receives a CSS
+- **World layers** (`coordinate: 'world'`): the outer layer element provides
+  viewport sizing/clipping, while its inner camera-transform div receives the CSS
   `translate + scale` transform derived from the active `CameraState` each frame.
   Entity slots positioned via `syncWorldPosition(wx, wy)` stay visually correct
   as the camera moves or zooms.
