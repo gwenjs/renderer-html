@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/gwenjs/renderer-html/compare/renderer-html-v0.2.1...renderer-html-v0.3.0) (2026-04-11)
+
+
+### Features
+
+* **logging:** propagate logger throughout layers/handles and add architecture docs ([d23dd2e](https://github.com/gwenjs/renderer-html/commit/d23dd2e7eb7103c917f921ee541912eafdf85ac9))
+
+
+### Bug Fixes
+
+* **review:** rate-limit suspension warn + explicit Map generic ([80823f8](https://github.com/gwenjs/renderer-html/commit/80823f8d1b3f983f13def613162af0b3120b800a))
+
 ## [0.2.1](https://github.com/gwenjs/renderer-html/compare/renderer-html-v0.2.0...renderer-html-v0.2.1) (2026-04-11)
 
 
