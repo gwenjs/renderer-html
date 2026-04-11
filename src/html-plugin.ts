@@ -26,7 +26,7 @@ import { definePlugin } from "@gwenjs/kit/plugin";
 import { getOrCreateLayerManager } from "@gwenjs/renderer-core";
 import { HTMLRenderer } from "./html-renderer-service.js";
 import type { HTMLRendererOptions } from "./html-renderer-service.js";
-import type { CameraManager, ViewportManager } from "./camera-types.js";
+import type { CameraManager, ViewportManager, ViewportContext } from "./camera-types.js";
 
 export type HTMLRendererPluginOptions = HTMLRendererOptions & {
   /** DOM container to mount layers into. Defaults to document.body. */
@@ -77,7 +77,7 @@ export const HTMLRendererPlugin = definePlugin(
           // Bootstrap static viewports declared in gwen.config.ts.
           // These emit viewport:add before engine:init runs, so we enumerate
           // them explicitly here rather than relying on the hook.
-          const staticViewports = viewportManager?.getAll() ?? new Map();
+          const staticViewports = viewportManager?.getAll() ?? new Map<string, ViewportContext>();
           for (const [id, vpCtx] of staticViewports) {
             log.debug("bootstrapping static viewport", { id });
             service.instantiateTemplates(id, vpCtx.region);
