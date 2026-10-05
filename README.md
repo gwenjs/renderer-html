@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@gwenjs/renderer-html)](https://www.npmjs.com/package/@gwenjs/renderer-html)
 [![CI](https://github.com/gwenjs/renderer-html/actions/workflows/ci.yml/badge.svg)](https://github.com/gwenjs/renderer-html/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-yellow.svg)](LICENSE)
 
 HTML/CSS renderer plugin for the [Gwen](https://github.com/gwenjs/gwen) game engine.
 
@@ -56,4 +56,4 @@ export const EnemyActor = defineActor(EnemyPrefab, () => {
 
 ## License
 
-MIT
+MPL-2.0
