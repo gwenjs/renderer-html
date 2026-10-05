@@ -1,6 +1,7 @@
 {
   "name": "@gwenjs/renderer-html",
   "version": "0.3.0",
+  "license": "MPL-2.0",
   "description": "RendererHtml plugin for GWEN",
   "type": "module",
   "repository": {
@@ -8,7 +9,8 @@
     "url": "https://github.com/gwenjs/renderer-html"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "exports": {
     ".": {
